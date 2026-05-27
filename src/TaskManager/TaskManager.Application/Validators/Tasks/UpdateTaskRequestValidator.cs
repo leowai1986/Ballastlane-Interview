@@ -18,7 +18,7 @@ public class UpdateTaskRequestValidator : AbstractValidator<UpdateTaskRequest>
             .IsInEnum();
 
         RuleFor(x => x.DueDate)
-            .Must(dueDate => !dueDate.HasValue || dueDate.Value > DateTime.UtcNow)
-            .WithMessage("DueDate must be in the future.");
+            .Must(dueDate => !dueDate.HasValue || dueDate.Value.Date >= DateTime.UtcNow.Date)
+            .WithMessage("DueDate cannot be in the past.");
     }
 }

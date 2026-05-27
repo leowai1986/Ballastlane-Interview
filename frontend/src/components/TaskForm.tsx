@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { CreateTaskRequest, TaskDto, TaskStatus, UpdateTaskRequest } from "../types";
 
 type Mode = "create" | "edit";
@@ -34,6 +34,24 @@ export function TaskForm(props: Props) {
   const [dueDate, setDueDate] = useState<string>(initial ? initial.dueDate?.slice(0, 10) ?? "" : "");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (props.mode === "edit" && props.initial) {
+      setTitle(props.initial.title);
+      setDescription(props.initial.description ?? "");
+      setStatus(props.initial.status);
+      setDueDate(props.initial.dueDate?.slice(0, 10) ?? "");
+    } else {
+      setTitle("");
+      setDescription("");
+      setStatus("Pending");
+      setDueDate("");
+    }
+    setErrors({});
+    setSubmitting(false);
+  }, [open, props.mode, props.initial?.id]);
 
   const canSubmit = useMemo(() => title.trim() !== "", [title]);
 
@@ -164,4 +182,3 @@ export function TaskForm(props: Props) {
     </div>
   );
 }
-

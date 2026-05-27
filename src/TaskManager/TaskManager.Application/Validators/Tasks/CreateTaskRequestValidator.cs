@@ -15,7 +15,7 @@ public class CreateTaskRequestValidator : AbstractValidator<CreateTaskRequest>
             .MaximumLength(2000);
 
         RuleFor(x => x.DueDate)
-            .Must(dueDate => !dueDate.HasValue || dueDate.Value > DateTime.UtcNow)
-            .WithMessage("DueDate must be in the future.");
+            .Must(dueDate => !dueDate.HasValue || dueDate.Value.Date >= DateTime.UtcNow.Date)
+            .WithMessage("DueDate cannot be in the past.");
     }
 }

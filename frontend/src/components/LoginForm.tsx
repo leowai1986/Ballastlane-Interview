@@ -10,7 +10,7 @@ export function LoginForm() {
 
   const [form, setForm] = useState<LoginRequest>({
     email: "demo@ballastlane.com",
-    password: "Demo123!",
+    password: "Pa$$w0rd!",
   });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);

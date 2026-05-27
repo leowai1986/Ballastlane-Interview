@@ -55,11 +55,6 @@ build/
 Thumbs.db
 desktop.ini
 
-# SQLite (optional - ignore DB files if you want, or keep for demo)
-# *.db
-# *.sqlite
-# *.sqlite3
-
 # Logs
 logs/
 *.log
