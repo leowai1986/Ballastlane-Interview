@@ -31,7 +31,7 @@ public class TasksController : ControllerBase
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var tasks = await _taskService.GetTasksByUserIdAsync(userId, cancellationToken);
+        var tasks = await _taskService.GetUserTasksAsync(userId, cancellationToken);
         return Ok(tasks);
     }
 
@@ -41,8 +41,8 @@ public class TasksController : ControllerBase
     public async Task<IActionResult> GetById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var task = await _taskService.GetTaskByIdAsync(id, cancellationToken);
-        if (task is null || task.UserId != userId)
+        var task = await _taskService.GetTaskAsync(userId, id, cancellationToken);
+        if (task is null)
         {
             return NotFound();
         }
@@ -67,8 +67,8 @@ public class TasksController : ControllerBase
     {
         await _updateValidator.ValidateAndThrowAsync(request, cancellationToken);
         var userId = GetUserId();
-        var existing = await _taskService.GetTaskByIdAsync(id, cancellationToken);
-        if (existing is null || existing.UserId != userId)
+        var existing = await _taskService.GetTaskAsync(userId, id, cancellationToken);
+        if (existing is null)
         {
             return NotFound();
         }
@@ -88,8 +88,8 @@ public class TasksController : ControllerBase
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var existing = await _taskService.GetTaskByIdAsync(id, cancellationToken);
-        if (existing is null || existing.UserId != userId)
+        var existing = await _taskService.GetTaskAsync(userId, id, cancellationToken);
+        if (existing is null)
         {
             return NotFound();
         }

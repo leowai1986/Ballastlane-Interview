@@ -3,33 +3,43 @@ using TaskManager.Application.Exceptions;
 using TaskManager.Application.Interfaces;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Repositories;
+using FluentValidation;
 
 namespace TaskManager.Application.Services;
 
 public class TaskService : ITaskService
 {
     private readonly ITaskRepository _taskRepository;
+    private readonly IValidator<CreateTaskRequest> _createTaskValidator;
 
-    public TaskService(ITaskRepository taskRepository)
+    public TaskService(ITaskRepository taskRepository, IValidator<CreateTaskRequest> createTaskValidator)
     {
         _taskRepository = taskRepository;
+        _createTaskValidator = createTaskValidator;
     }
 
-    public async Task<IReadOnlyCollection<TaskDto>> GetTasksByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<TaskDto>> GetUserTasksAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var tasks = await _taskRepository.GetByUserIdAsync(userId, cancellationToken);
 
         return tasks.Select(MapToDto).ToList();
     }
 
-    public async Task<TaskDto?> GetTaskByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<TaskDto?> GetTaskAsync(Guid userId, Guid taskId, CancellationToken cancellationToken = default)
     {
-        var taskItem = await _taskRepository.GetByIdAsync(id, cancellationToken);
-        return taskItem is null ? null : MapToDto(taskItem);
+        var taskItem = await _taskRepository.GetByIdAsync(taskId, cancellationToken);
+        if (taskItem is null || taskItem.UserId != userId)
+        {
+            return null;
+        }
+
+        return MapToDto(taskItem);
     }
 
     public async Task<TaskDto> CreateTaskAsync(Guid userId, CreateTaskRequest request, CancellationToken cancellationToken = default)
     {
+        await _createTaskValidator.ValidateAndThrowAsync(request, cancellationToken);
+
         var taskItem = new TaskItem
         {
             Title = request.Title.Trim(),
