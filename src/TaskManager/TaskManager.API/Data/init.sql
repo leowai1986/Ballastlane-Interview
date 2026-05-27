@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS Tasks (
 );
 
 INSERT OR IGNORE INTO Users (Id, Email, PasswordHash, Name, CreatedAt, UpdatedAt)
-VALUES ('11111111-1111-1111-1111-111111111111', 'demo@ballastlane.com', 'Pa$$w0rd!', 'Demo User', '2024-01-01', '2024-01-01');
+VALUES ('11111111-1111-1111-1111-111111111111', 'demo@ballastlane.com', '$2b$11$DE/ROeEwPrAJ85iW8xqBwOLls5ad3H3WNoJjtSImQTWrKZfS7OuAG', 'Demo User', '2024-01-01', '2024-01-01');
 
 INSERT OR IGNORE INTO Tasks (Id, Title, Description, Status, DueDate, UserId, CreatedAt, UpdatedAt)
 VALUES
