@@ -1,0 +1,53 @@
+```http
+### Health Check (Public)
+GET http://localhost:5257/api/health
+
+### Register New User
+POST http://localhost:5257/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "Test123!"
+}
+
+### Login (Demo User)
+POST http://localhost:5257/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo@ballastlane.com",
+  "password": "Pa$$w0rd!"
+}
+
+### List My Tasks (Replace TOKEN with value from login response)
+GET http://localhost:5257/api/tasks
+Authorization: Bearer eyJhbGci...
+
+### Create Task
+POST http://localhost:5257/api/tasks
+Content-Type: application/json
+Authorization: Bearer eyJhbGci...
+
+{
+  "title": "New Interview Task",
+  "description": "Prepare for Ballastlane",
+  "dueDate": "2026-05-30T00:00:00Z"
+}
+
+### Update Task
+PUT http://localhost:5257/api/tasks/{TASK_ID}
+Content-Type: application/json
+Authorization: Bearer eyJhbGci...
+
+{
+  "title": "Updated Task",
+  "description": "Updated description",
+  "status": "InProgress",
+  "dueDate": "2026-06-01T00:00:00Z"
+}
+
+### Delete Task
+DELETE http://localhost:5257/api/tasks/{TASK_ID}
+Authorization: Bearer eyJhbGci...
