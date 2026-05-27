@@ -57,15 +57,19 @@ Dependencies point inward. Outer layers depend on inner layers, never the revers
 ```bash
 cd src/TaskManager/TaskManager.API
 dotnet run
+```
 
 - API will be available at http://localhost:5257
 - Swagger UI at http://localhost:5257/swagger/index.html
 - Database (taskmanager.db) is auto-created and seeded on startup
 
 ### 2. Frontend
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
 - Frontend will be available at http://localhost:5173
 
@@ -78,7 +82,7 @@ npm run dev
 
 Pre-filled on the login screen for convenience.
 
-##API Endpoints
+## API Endpoints
 
 | Method   | Endpoint             | Auth Required | Description               |
 | -------- | -------------------- | ------------- | ------------------------- |
@@ -93,14 +97,16 @@ Pre-filled on the login screen for convenience.
 
 Auth Header: Authorization: Bearer <jwt_token>
 
-##Running Tests
+## Running Tests
 
-###Backend Tests
+### Backend Tests
 
+```bash
 cd src
 dotnet test
+```
 
-##Key Design Decisions
+## Key Design Decisions
 
 Raw ADO.NET over EF/Dapper: Required by exercise constraints. Used parameterized SqliteCommand to prevent SQL injection while maintaining full control over queries.
 JWT Statelessness: No server-side session storage required; token contains user claims.
@@ -108,15 +114,17 @@ Clean Architecture: Business logic is isolated in Application layer, testable wi
 Responsive Frontend: Mobile-first Tailwind design with loading states and empty states for full UX.
 TDD Approach: Unit tests written for Domain, Application, Infrastructure, and API layers.
 
-##Seeded Data
+## Seeded Data
 
 On first run, the database is initialized with:
 - 1 Demo User: demo@ballastlane.com
 - 3 Demo Tasks: Pending, InProgress, Completed
+
 To reset the database, simply delete src/TaskManager.API/taskmanager.db and restart the API.
 
-##Project Structure
+## Project Structure
 
+```bash
 Ballastlane-Interview/
 ├── src/
 │   ├── TaskManager.sln
@@ -135,7 +143,7 @@ Ballastlane-Interview/
 │   └── vite.config.ts
 ├── README.md
 └── init.sql
-
-##License
-This project was built for interview evaluation purposes.
 ```
+
+## License
+This project was built for interview evaluation purposes.
