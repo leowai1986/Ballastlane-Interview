@@ -117,8 +117,8 @@ TDD Approach: Unit tests written for Domain, Application, Infrastructure, and AP
 ## Seeded Data
 
 On first run, the database is initialized with:
-- 1 Demo User: demo@ballastlane.com
-- 3 Demo Tasks: Pending, InProgress, Completed
+- 2 Demo User: demo@ballastlane.com and demo2@ballastlane.com
+- 120 Demo Tasks: Pending, InProgress, Completed | demo 1 and demo 2
 
 To reset the database, simply delete src/TaskManager.API/taskmanager.db and restart the API.
 
