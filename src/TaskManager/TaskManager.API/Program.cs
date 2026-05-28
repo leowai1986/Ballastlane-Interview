@@ -22,9 +22,7 @@ using System.Runtime.CompilerServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IValidator<CreateTaskRequest>, CreateTaskRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateTaskRequest>, UpdateTaskRequestValidator>();
@@ -106,8 +104,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseRouting();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+app.UseRouting();
 app.UseCors(policy =>
     policy.AllowAnyOrigin()
           .AllowAnyMethod()

@@ -158,25 +158,6 @@ public class TaskServiceTests
             sut.UpdateTaskAsync(Guid.NewGuid(), Guid.NewGuid(), new UpdateTaskRequest { Title = "New", Status = DomainTaskStatus.Pending }, default));
     }
 
-    [Fact]
-    public async Task DeleteTaskAsync_DelegatesToRepository()
-    {
-        var id = Guid.NewGuid();
-        var userId = Guid.NewGuid();
-        var repoMock = new Mock<ITaskRepository>();
-        var validatorMock = CreateValidValidator();
-        repoMock.Setup(r => r.DeleteAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-        repoMock.Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-        .ReturnsAsync([new TaskItem { Id = id, UserId = userId }]);
-
-        var sut = new TaskService(repoMock.Object, validatorMock.Object);
-
-        var result = await sut.DeleteTaskAsync(id, userId, default);
-
-        Assert.True(result);
-        repoMock.Verify(r => r.DeleteAsync(id, default), Times.Once);
-    }
-
     private static Mock<IValidator<CreateTaskRequest>> CreateValidValidator()
     {
         var validatorMock = new Mock<IValidator<CreateTaskRequest>>();

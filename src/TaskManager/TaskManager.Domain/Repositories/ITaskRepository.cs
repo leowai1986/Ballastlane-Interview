@@ -5,7 +5,6 @@ namespace TaskManager.Domain.Repositories;
 public interface ITaskRepository
 {
     Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<List<TaskItem>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<PagedResult<TaskItem>> GetByUserIdPaginatedAsync(Guid userId, TaskFilterRequest filter, CancellationToken cancellationToken = default);
     Task<TaskItem> CreateAsync(TaskItem taskItem, CancellationToken cancellationToken = default);
     Task<bool> UpdateAsync(TaskItem taskItem, CancellationToken cancellationToken = default);

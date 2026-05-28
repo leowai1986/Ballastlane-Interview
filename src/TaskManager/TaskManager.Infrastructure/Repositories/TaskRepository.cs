@@ -35,26 +35,6 @@ public class TaskRepository : ITaskRepository
         return MapTask(reader);
     }
 
-    public async Task<List<TaskItem>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
-    {
-        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT Id, Title, Description, Status, DueDate, UserId, CreatedAt, UpdatedAt
-            FROM Tasks
-            WHERE UserId = @UserId
-            """;
-        command.Parameters.Add(new SqliteParameter("@UserId", userId.ToString()));
-
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        var tasks = new List<TaskItem>();
-        while (await reader.ReadAsync(cancellationToken))
-        {
-            tasks.Add(MapTask(reader));
-        }
-        return tasks;
-    }
-
     public async Task<PagedResult<TaskItem>> GetByUserIdPaginatedAsync(Guid userId,
                                                                 TaskFilterRequest filter,
                                                                 CancellationToken cancellationToken = default)

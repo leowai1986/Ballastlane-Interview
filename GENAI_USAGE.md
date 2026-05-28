@@ -2,7 +2,7 @@
 
 ## Tool Used
 
-**Cursor** (powered by Claude 4.7 Opus)
+**Cursor** (Multi-model AI code editor powered by OpenAI and Anthropic APIs)
 
 ## Overview
 

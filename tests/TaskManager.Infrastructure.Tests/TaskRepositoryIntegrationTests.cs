@@ -99,51 +99,6 @@ public class TaskRepositoryIntegrationTests : IDisposable
     }
 
     [Fact]
-    public async Task GetByUserIdAsync_UserHasTasks_ReturnsAllTasks()
-    {
-        var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-
-        var result = await _repository.GetByUserIdAsync(userId);
-
-        Assert.NotNull(result);
-        Assert.Single(result);
-    }
-
-    [Fact]
-    public async Task GetByUserIdAsync_UserHasNoTasks_ReturnsEmptyList()
-    {
-        var userId = Guid.NewGuid();
-
-        var result = await _repository.GetByUserIdAsync(userId);
-
-        Assert.NotNull(result);
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public async Task GetByUserIdAsync_MultipleUsers_ReturnsOnlyMatchingUserTasks()
-    {
-        var userId1 = Guid.Parse("11111111-1111-1111-1111-111111111111");
-        var userId2 = Guid.Parse("22222222-2222-2222-2222-222222222222");
-
-        var result = await _repository.GetByUserIdAsync(userId1);
-
-        Assert.Single(result);
-        Assert.Equal(userId1, result[0].UserId);
-    }
-
-    [Fact]
-    public async Task GetByUserIdAsync_EmptyGuid_ReturnsEmptyList()
-    {
-        var emptyGuid = Guid.Empty;
-
-        var result = await _repository.GetByUserIdAsync(emptyGuid);
-
-        Assert.NotNull(result);
-        Assert.Empty(result);
-    }
-
-    [Fact]
     public async Task GetByIdAsync_UserExists_ReturnsUser()
     {
         var expectedUser = new User

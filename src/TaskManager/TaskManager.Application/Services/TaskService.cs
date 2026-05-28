@@ -71,8 +71,8 @@ public class TaskService : ITaskService
 
     public async Task<bool> DeleteTaskAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
     {
-        var userTask = await _taskRepository.GetByUserIdAsync(userId, cancellationToken);
-        if (userTask.Any(t => t.Id == id) == false)
+        var userTask = await _taskRepository.GetByIdAsync(id, cancellationToken);
+        if (userTask is null || userTask.UserId != userId)
         {
             throw new UnauthorizedAccessException($"Task '{id}' not belong to user.");
         }
