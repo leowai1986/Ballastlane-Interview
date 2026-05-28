@@ -141,8 +141,8 @@ Ballastlane-Interview/
 │   ├── src/
 │   ├── package.json
 │   └── vite.config.ts
-├── README.md
-└── init.sql
+├── GENAI_USAGE.md
+└── README.md
 ```
 
 ## License
