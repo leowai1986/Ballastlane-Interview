@@ -18,11 +18,11 @@ public class TaskService : ITaskService
         _createTaskValidator = createTaskValidator;
     }
 
-    public async Task<IReadOnlyCollection<TaskDto>> GetUserTasksAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<TaskItem>> GetUserTasksAsync(Guid userId, TaskFilterRequest filter, CancellationToken cancellationToken = default)
     {
-        var tasks = await _taskRepository.GetByUserIdAsync(userId, cancellationToken);
+        var tasks = await _taskRepository.GetByUserIdPaginatedAsync(userId, filter, cancellationToken);
 
-        return tasks.Select(MapToDto).ToList();
+        return tasks;
     }
 
     public async Task<TaskDto?> GetTaskAsync(Guid userId, Guid taskId, CancellationToken cancellationToken = default)
@@ -52,12 +52,12 @@ public class TaskService : ITaskService
         return MapToDto(created);
     }
 
-    public async Task<bool> UpdateTaskAsync(Guid id, UpdateTaskRequest request, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateTaskAsync(Guid id, Guid userId, UpdateTaskRequest request, CancellationToken cancellationToken = default)
     {
-        var existing = await _taskRepository.GetByIdAsync(id, cancellationToken);
-        if (existing is null)
+        var existing = await _taskRepository.GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException($"Task '{id}' was not found.");
+        if (existing.UserId != userId)
         {
-            throw new NotFoundException($"Task '{id}' was not found.");
+            throw new UnauthorizedAccessException($"Task '{id}' not belong to user.");
         }
 
         existing.Title = request.Title.Trim();
@@ -69,9 +69,14 @@ public class TaskService : ITaskService
         return await _taskRepository.UpdateAsync(existing, cancellationToken);
     }
 
-    public Task<bool> DeleteTaskAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteTaskAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
     {
-        return _taskRepository.DeleteAsync(id, cancellationToken);
+        var userTask = await _taskRepository.GetByUserIdAsync(userId, cancellationToken);
+        if (userTask.Any(t => t.Id == id) == false)
+        {
+            throw new UnauthorizedAccessException($"Task '{id}' not belong to user.");
+        }
+        return await _taskRepository.DeleteAsync(id, cancellationToken);
     }
 
     private static TaskDto MapToDto(TaskItem taskItem)

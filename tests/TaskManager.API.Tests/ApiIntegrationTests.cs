@@ -37,7 +37,7 @@ public class ApiIntegrationTests : IClassFixture<TaskManagerApiFactory>
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().StartWith("[");
+        content.Should().StartWith("{");
     }
 
     [Fact]

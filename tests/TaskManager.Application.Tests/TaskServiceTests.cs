@@ -82,19 +82,25 @@ public class TaskServiceTests
         var repoMock = new Mock<ITaskRepository>();
         var validatorMock = CreateValidValidator();
         repoMock
-            .Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<TaskItem>
+            .Setup(r => r.GetByUserIdPaginatedAsync(userId, It.IsAny<TaskFilterRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PagedResult<TaskItem>
             {
-                new() { Id = Guid.NewGuid(), Title = "Task 1", UserId = userId, Status = DomainTaskStatus.Pending },
-                new() { Id = Guid.NewGuid(), Title = "Task 2", UserId = userId, Status = DomainTaskStatus.InProgress }
+                Items =
+                [
+                    new() { Id = Guid.NewGuid(), Title = "Task 1", UserId = userId, Status = DomainTaskStatus.Pending },
+                    new() { Id = Guid.NewGuid(), Title = "Task 2", UserId = userId, Status = DomainTaskStatus.InProgress }
+                ],
+                Page = 1,
+                PageSize = 20,
+                TotalCount = 2
             });
 
         var sut = new TaskService(repoMock.Object, validatorMock.Object);
 
-        var result = await sut.GetUserTasksAsync(userId);
+        var result = await sut.GetUserTasksAsync(userId, new TaskFilterRequest(), CancellationToken.None);
 
-        result.Should().HaveCount(2);
-        result.Should().OnlyContain(x => x.UserId == userId);
+        result.Items.Should().HaveCount(2);
+        result.Items.Should().OnlyContain(x => x.UserId == userId);
     }
 
     [Fact]
@@ -128,13 +134,14 @@ public class TaskServiceTests
     public async Task UpdateTaskAsync_WithExistingTask_ReturnsTrue()
     {
         var id = Guid.NewGuid();
+        var userId = Guid.NewGuid();
         var repoMock = new Mock<ITaskRepository>();
         var validatorMock = CreateValidValidator();
-        var existing = new TaskItem { Id = id, Title = "Old", Status = DomainTaskStatus.Pending };
+        var existing = new TaskItem { Id = id, Title = "Old", UserId = userId, Status = DomainTaskStatus.Pending };
         repoMock.Setup(r => r.GetByIdAsync(id, default)).ReturnsAsync(existing);
         repoMock.Setup(r => r.UpdateAsync(It.IsAny<TaskItem>(), default)).ReturnsAsync(true);
         var sut = new TaskService(repoMock.Object, validatorMock.Object);
-        var result = await sut.UpdateTaskAsync(id, new UpdateTaskRequest { Title = "New", Status = DomainTaskStatus.InProgress }, default);
+        var result = await sut.UpdateTaskAsync(id, userId, new UpdateTaskRequest { Title = "New", Status = DomainTaskStatus.InProgress }, default);
 
         Assert.True(result);
         repoMock.Verify(r => r.UpdateAsync(It.Is<TaskItem>(t => t.Title == "New"), default), Times.Once);
@@ -147,22 +154,24 @@ public class TaskServiceTests
         var validatorMock = CreateValidValidator();
         repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default)).ReturnsAsync((TaskItem?)null);
         var sut = new TaskService(repoMock.Object, validatorMock.Object);
-
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            sut.UpdateTaskAsync(Guid.NewGuid(), new UpdateTaskRequest { Title = "New", Status = DomainTaskStatus.Pending }, default));
+            sut.UpdateTaskAsync(Guid.NewGuid(), Guid.NewGuid(), new UpdateTaskRequest { Title = "New", Status = DomainTaskStatus.Pending }, default));
     }
 
     [Fact]
     public async Task DeleteTaskAsync_DelegatesToRepository()
     {
         var id = Guid.NewGuid();
+        var userId = Guid.NewGuid();
         var repoMock = new Mock<ITaskRepository>();
         var validatorMock = CreateValidValidator();
-        repoMock.Setup(r => r.DeleteAsync(id, default)).ReturnsAsync(true);
+        repoMock.Setup(r => r.DeleteAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        repoMock.Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+        .ReturnsAsync([new TaskItem { Id = id, UserId = userId }]);
 
         var sut = new TaskService(repoMock.Object, validatorMock.Object);
 
-        var result = await sut.DeleteTaskAsync(id, default);
+        var result = await sut.DeleteTaskAsync(id, userId, default);
 
         Assert.True(result);
         repoMock.Verify(r => r.DeleteAsync(id, default), Times.Once);

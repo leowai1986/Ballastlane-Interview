@@ -35,27 +35,132 @@ public class TaskRepository : ITaskRepository
         return MapTask(reader);
     }
 
-    public async Task<IReadOnlyCollection<TaskItem>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<List<TaskItem>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var result = new List<TaskItem>();
-
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT Id, Title, Description, Status, DueDate, UserId, CreatedAt, UpdatedAt
             FROM Tasks
             WHERE UserId = @UserId
-            ORDER BY CreatedAt DESC
             """;
         command.Parameters.Add(new SqliteParameter("@UserId", userId.ToString()));
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var tasks = new List<TaskItem>();
         while (await reader.ReadAsync(cancellationToken))
         {
-            result.Add(MapTask(reader));
+            tasks.Add(MapTask(reader));
+        }
+        return tasks;
+    }
+
+    public async Task<PagedResult<TaskItem>> GetByUserIdPaginatedAsync(Guid userId,
+                                                                TaskFilterRequest filter,
+                                                                CancellationToken cancellationToken = default)
+    {
+        if (filter.Page < 1) filter.Page = 1;
+        if (filter.PageSize < 1) filter.PageSize = 1;
+        if (filter.PageSize > 100) filter.PageSize = 100;
+
+        await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+
+        var countSql = """
+            SELECT COUNT(*)
+            FROM Tasks
+            WHERE UserId = @UserId
+            """;
+
+        var whereConditions = new List<string>();
+        var parameters = new List<SqliteParameter>
+        {
+            new("@UserId", userId.ToString())
+        };
+
+        if (!string.IsNullOrWhiteSpace(filter.Status))
+        {
+            whereConditions.Add("Status = @Status");
+            parameters.Add(new("@Status", filter.Status));
         }
 
-        return result;
+        if (filter.DueDateFrom.HasValue)
+        {
+            whereConditions.Add("DueDate >= @DueDateFrom");
+            parameters.Add(new("@DueDateFrom", filter.DueDateFrom.Value));
+        }
+
+        if (filter.DueDateTo.HasValue)
+        {
+            whereConditions.Add("DueDate <= @DueDateTo");
+            parameters.Add(new("@DueDateTo", filter.DueDateTo.Value));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            whereConditions.Add("(Title LIKE @SearchTerm OR Description LIKE @SearchTerm)");
+            parameters.Add(new("@SearchTerm", $"%{filter.SearchTerm}%"));
+        }
+
+        if (whereConditions.Count > 0)
+        {
+            countSql += " AND " + string.Join(" AND ", whereConditions);
+        }
+
+        await using var countCommand = connection.CreateCommand();
+        countCommand.CommandText = countSql;
+        foreach (var param in parameters) countCommand.Parameters.Add(param);
+
+        var totalCount = Convert.ToInt32(await countCommand.ExecuteScalarAsync(cancellationToken));
+
+        var allowedSortColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Id", "Title", "Description", "Status", "DueDate", "CreatedAt", "UpdatedAt"
+        };
+
+        var sortColumn = allowedSortColumns.Contains(filter.SortBy ?? string.Empty)
+            ? filter.SortBy
+            : "CreatedAt";
+
+        var sortDirection = filter.SortDirection == SortDirection.Asc ? "ASC" : "DESC";
+
+        var dataSql = $"""
+            SELECT Id, Title, Description, Status, DueDate, UserId, CreatedAt, UpdatedAt
+            FROM Tasks
+            WHERE UserId = @UserId
+            """;
+
+        if (whereConditions.Count > 0)
+        {
+            dataSql += " AND " + string.Join(" AND ", whereConditions);
+        }
+
+        dataSql += $"""
+            
+            ORDER BY {sortColumn} {sortDirection}
+            LIMIT @PageSize OFFSET @Offset
+            """;
+
+        await using var dataCommand = connection.CreateCommand();
+        dataCommand.CommandText = dataSql;
+
+        foreach (var param in parameters) dataCommand.Parameters.Add(new SqliteParameter(param.ParameterName, param.Value));
+        dataCommand.Parameters.Add(new("@PageSize", filter.PageSize));
+        dataCommand.Parameters.Add(new("@Offset", (filter.Page - 1) * filter.PageSize));
+
+        var items = new List<TaskItem>();
+        await using var reader = await dataCommand.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            items.Add(MapTask(reader));
+        }
+
+        return new PagedResult<TaskItem>
+        {
+            Items = items,
+            Page = filter.Page,
+            PageSize = filter.PageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<TaskItem> CreateAsync(TaskItem taskItem, CancellationToken cancellationToken = default)

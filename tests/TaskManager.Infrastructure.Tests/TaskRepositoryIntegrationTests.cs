@@ -8,6 +8,7 @@ public class TaskRepositoryIntegrationTests : IDisposable
 {
     private readonly string _dbFile;
     private readonly TaskRepository _repository;
+    private readonly UserRepository _userRepository;
 
     public TaskRepositoryIntegrationTests()
     {
@@ -28,6 +29,7 @@ public class TaskRepositoryIntegrationTests : IDisposable
                 CreatedAt TEXT NOT NULL,
                 UpdatedAt TEXT NOT NULL
             );
+            insert into Tasks values ('a2222222-2222-2222-2222-222222222221', 'User Task', 'User Task', 'Pending', '2027-01-01', '11111111-1111-1111-1111-111111111111', '2024-01-01', '2024-01-01');
             CREATE TABLE Users (
                 Id TEXT PRIMARY KEY,
                 Email TEXT UNIQUE,
@@ -44,6 +46,7 @@ public class TaskRepositoryIntegrationTests : IDisposable
 
         var factory = new TestConnectionFactory($"DataSource={_dbFile}");
         _repository = new TaskRepository(factory);
+        _userRepository = new UserRepository(factory);
     }
 
     [Fact]
@@ -90,9 +93,83 @@ public class TaskRepositoryIntegrationTests : IDisposable
     public async Task GetByUserIdAsync_ShouldReturnOnlyUserTasks()
     {
         var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-        var tasks = await _repository.GetByUserIdAsync(userId);
+        var tasks = await _repository.GetByUserIdPaginatedAsync(userId, new TaskFilterRequest(), CancellationToken.None);
 
-        Assert.All(tasks, t => Assert.Equal(userId, t.UserId));
+        Assert.All(tasks.Items, t => Assert.Equal(userId, t.UserId));
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_UserHasTasks_ReturnsAllTasks()
+    {
+        var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        var result = await _repository.GetByUserIdAsync(userId);
+
+        Assert.NotNull(result);
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_UserHasNoTasks_ReturnsEmptyList()
+    {
+        var userId = Guid.NewGuid();
+
+        var result = await _repository.GetByUserIdAsync(userId);
+
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_MultipleUsers_ReturnsOnlyMatchingUserTasks()
+    {
+        var userId1 = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var userId2 = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+        var result = await _repository.GetByUserIdAsync(userId1);
+
+        Assert.Single(result);
+        Assert.Equal(userId1, result[0].UserId);
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_EmptyGuid_ReturnsEmptyList()
+    {
+        var emptyGuid = Guid.Empty;
+
+        var result = await _repository.GetByUserIdAsync(emptyGuid);
+
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_UserExists_ReturnsUser()
+    {
+        var expectedUser = new User
+        {
+            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Email = "test@example.com",
+            PasswordHash = "hashed_password",
+            Name = "Test User",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userRepository.GetByIdAsync(expectedUser.Id);
+
+        Assert.NotNull(result);
+        Assert.Equal(expectedUser.Id, result.Id);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_UserDoesNotExist_ReturnsNull()
+    {
+        var nonExistentId = Guid.NewGuid();
+
+        var result = await _userRepository.GetByIdAsync(nonExistentId);
+
+        Assert.Null(result);
     }
 
     [Fact]

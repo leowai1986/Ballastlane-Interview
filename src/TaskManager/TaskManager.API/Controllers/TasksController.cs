@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Application.DTOs.Tasks;
 using TaskManager.Application.Interfaces;
+using TaskManager.Domain.Entities;
 
 namespace TaskManager.API.Controllers;
 
@@ -28,10 +29,10 @@ public class TasksController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<TaskDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll([FromQuery] TaskFilterRequest filter, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var tasks = await _taskService.GetUserTasksAsync(userId, cancellationToken);
+        var tasks = await _taskService.GetUserTasksAsync(userId, filter, cancellationToken);
         return Ok(tasks);
     }
 
@@ -73,7 +74,7 @@ public class TasksController : ControllerBase
             return NotFound();
         }
 
-        var updated = await _taskService.UpdateTaskAsync(id, request, cancellationToken);
+        var updated = await _taskService.UpdateTaskAsync(id, userId, request, cancellationToken);
         if (!updated)
         {
             return NotFound();
@@ -94,7 +95,7 @@ public class TasksController : ControllerBase
             return NotFound();
         }
 
-        var deleted = await _taskService.DeleteTaskAsync(id, cancellationToken);
+        var deleted = await _taskService.DeleteTaskAsync(id, userId, cancellationToken);
         if (!deleted)
         {
             return NotFound();

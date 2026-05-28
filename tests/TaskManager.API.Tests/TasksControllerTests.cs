@@ -91,7 +91,7 @@ public class TasksControllerTests
         var taskId = Guid.NewGuid();
         _taskServiceMock.Setup(s => s.GetTaskAsync(It.IsAny<Guid>(), taskId, default))
             .ReturnsAsync(new TaskDto { Id = taskId });
-        _taskServiceMock.Setup(s => s.UpdateTaskAsync(taskId, It.IsAny<UpdateTaskRequest>(), default))
+        _taskServiceMock.Setup(s => s.UpdateTaskAsync(taskId, It.IsAny<Guid>(), It.IsAny<UpdateTaskRequest>(), default))
             .ReturnsAsync(true);
 
         var result = await _controller.Update(taskId, new UpdateTaskRequest { Title = "Updated", Status = TaskManager.Domain.Enums.TaskStatus.InProgress }, default);
@@ -114,9 +114,19 @@ public class TasksControllerTests
     public async Task Delete_WithExistingTask_Returns204()
     {
         var taskId = Guid.NewGuid();
-        _taskServiceMock.Setup(s => s.GetTaskAsync(It.IsAny<Guid>(), taskId, default))
+        var userId = Guid.NewGuid();
+        var user = new ClaimsPrincipal(new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+        ], "mock"));
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = user }
+        };
+        _taskServiceMock.Setup(s => s.GetTaskAsync(userId, taskId, default))
             .ReturnsAsync(new TaskDto { Id = taskId });
-        _taskServiceMock.Setup(s => s.DeleteTaskAsync(taskId, default))
+        _taskServiceMock.Setup(s => s.DeleteTaskAsync(taskId, userId, default))
             .ReturnsAsync(true);
 
         var result = await _controller.Delete(taskId, default);

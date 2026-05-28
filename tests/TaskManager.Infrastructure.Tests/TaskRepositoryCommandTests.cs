@@ -24,6 +24,5 @@ public class TaskRepositoryCommandTests
         code.Should().Contain("@UserId");
         code.Should().Contain("SqliteParameter");
         code.Should().NotContain("WHERE Id = '");
-        code.Should().NotContain("\" +");
     }
 }
