@@ -112,7 +112,7 @@ Raw ADO.NET over EF/Dapper: Required by exercise constraints. Used parameterized
 JWT Statelessness: No server-side session storage required; token contains user claims.
 Clean Architecture: Business logic is isolated in Application layer, testable without web server or database.
 Responsive Frontend: Mobile-first Tailwind design with loading states and empty states for full UX.
-TDD Approach: Unit tests written for Domain, Application, Infrastructure, and API layers.
+Unit tests written for Domain, Application, Infrastructure, and API layers.
 
 ## Seeded Data
 
