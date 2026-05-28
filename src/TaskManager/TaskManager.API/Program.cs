@@ -16,6 +16,9 @@ using TaskManager.API.Middleware;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("TaskManager.API.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
 
