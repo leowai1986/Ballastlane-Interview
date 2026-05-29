@@ -1,7 +1,4 @@
 ```http
-### Health Check (Public)
-GET http://localhost:5257/api/health
-
 ### Register New User
 POST http://localhost:5257/api/auth/register
 Content-Type: application/json

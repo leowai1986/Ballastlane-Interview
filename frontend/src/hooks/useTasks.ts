@@ -117,7 +117,7 @@ export function useTasks() {
     (sortBy: TaskFilterRequest["sortBy"]) => {
       const current = filtersRef.current;
       const sortDirection: SortDirection =
-        current.sortBy === sortBy && current.sortDirection === SortDirection.Asc
+        current.sortBy === sortBy && current.sortDirection === SortDirection.Desc
           ? SortDirection.Asc
           : SortDirection.Desc;
 

@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useMemo, useState } from "react";
 import type { AuthResponse } from "../types";
+import { useNavigate } from "react-router-dom";
 
 type AuthUser = {
   name: string;
@@ -52,7 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     if (window.location.pathname !== "/login") {
-      window.location.assign("/login");
+      const navigate = useNavigate();
+      navigate("/login");
     }
   };
 

@@ -21,12 +21,13 @@ public class TaskServiceTests
         var request = new CreateTaskRequest { Title = "My Task", Description = "Desc" };
         var repoMock = new Mock<ITaskRepository>();
         var validatorMock = CreateValidValidator();
+        var updateValidatorMock = UpdateValidValidator();
 
         repoMock
             .Setup(r => r.CreateAsync(It.IsAny<TaskItem>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((TaskItem item, CancellationToken _) => item);
 
-        var sut = new TaskService(repoMock.Object, validatorMock.Object);
+        var sut = new TaskService(repoMock.Object, validatorMock.Object, updateValidatorMock.Object);
 
         var result = await sut.CreateTaskAsync(userId, request);
 
@@ -41,9 +42,23 @@ public class TaskServiceTests
         var userId = Guid.NewGuid();
         var request = new CreateTaskRequest { Title = string.Empty, Description = "Desc" };
         var repoMock = new Mock<ITaskRepository>();
-        var sut = new TaskService(repoMock.Object, new CreateTaskRequestValidator());
+        var sut = new TaskService(repoMock.Object, new CreateTaskRequestValidator(), new UpdateTaskRequestValidator());
 
         var act = async () => await sut.CreateTaskAsync(userId, request);
+
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Fact]
+    public async Task UpdateTaskAsync_WithEmptyTitle_ThrowsValidationException()
+    {
+        var taskId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var request = new UpdateTaskRequest { Title = string.Empty, Description = "Desc" };
+        var repoMock = new Mock<ITaskRepository>();
+        var sut = new TaskService(repoMock.Object, new CreateTaskRequestValidator(), new UpdateTaskRequestValidator());
+
+        var act = async () => await sut.UpdateTaskAsync(taskId, userId, request);
 
         await act.Should().ThrowAsync<ValidationException>();
     }
@@ -55,7 +70,8 @@ public class TaskServiceTests
         var taskId = Guid.NewGuid();
         var ownerId = Guid.NewGuid();
         var repoMock = new Mock<ITaskRepository>();
-        var validatorMock = CreateValidValidator();
+        var createValidatorMock = CreateValidValidator();
+        var updateValidatorMock = UpdateValidValidator();
 
         repoMock
             .Setup(r => r.GetByIdAsync(taskId, It.IsAny<CancellationToken>()))
@@ -68,7 +84,7 @@ public class TaskServiceTests
                 UserId = ownerId
             });
 
-        var sut = new TaskService(repoMock.Object, validatorMock.Object);
+        var sut = new TaskService(repoMock.Object, createValidatorMock.Object, updateValidatorMock.Object);
 
         var result = await sut.GetTaskAsync(currentUserId, taskId);
 
@@ -81,6 +97,7 @@ public class TaskServiceTests
         var userId = Guid.NewGuid();
         var repoMock = new Mock<ITaskRepository>();
         var validatorMock = CreateValidValidator();
+        var updateValidatorMock = UpdateValidValidator();
         repoMock
             .Setup(r => r.GetByUserIdPaginatedAsync(userId, It.IsAny<TaskFilterRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PagedResult<TaskItem>
@@ -95,7 +112,7 @@ public class TaskServiceTests
                 TotalCount = 2
             });
 
-        var sut = new TaskService(repoMock.Object, validatorMock.Object);
+        var sut = new TaskService(repoMock.Object, validatorMock.Object, updateValidatorMock.Object);
 
         var result = await sut.GetUserTasksAsync(userId, new TaskFilterRequest(), CancellationToken.None);
 
@@ -110,6 +127,7 @@ public class TaskServiceTests
         var taskId = Guid.NewGuid();
         var repoMock = new Mock<ITaskRepository>();
         var validatorMock = CreateValidValidator();
+        var updateValidatorMock = UpdateValidValidator();
 
         repoMock
             .Setup(r => r.GetByIdAsync(taskId, It.IsAny<CancellationToken>()))
@@ -122,7 +140,7 @@ public class TaskServiceTests
                 UserId = currentUserId
             });
 
-        var sut = new TaskService(repoMock.Object, validatorMock.Object);
+        var sut = new TaskService(repoMock.Object, validatorMock.Object, updateValidatorMock.Object);
 
         var result = await sut.GetTaskAsync(currentUserId, taskId);
 
@@ -137,10 +155,11 @@ public class TaskServiceTests
         var userId = Guid.NewGuid();
         var repoMock = new Mock<ITaskRepository>();
         var validatorMock = CreateValidValidator();
+        var updateValidatorMock = UpdateValidValidator();
         var existing = new TaskItem { Id = id, Title = "Old", UserId = userId, Status = DomainTaskStatus.Pending };
         repoMock.Setup(r => r.GetByIdAsync(id, default)).ReturnsAsync(existing);
         repoMock.Setup(r => r.UpdateAsync(It.IsAny<TaskItem>(), default)).ReturnsAsync(true);
-        var sut = new TaskService(repoMock.Object, validatorMock.Object);
+        var sut = new TaskService(repoMock.Object, validatorMock.Object, updateValidatorMock.Object);
         var result = await sut.UpdateTaskAsync(id, userId, new UpdateTaskRequest { Title = "New", Status = DomainTaskStatus.InProgress }, default);
 
         Assert.True(result);
@@ -152,8 +171,9 @@ public class TaskServiceTests
     {
         var repoMock = new Mock<ITaskRepository>();
         var validatorMock = CreateValidValidator();
+        var updateValidatorMock = UpdateValidValidator();
         repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default)).ReturnsAsync((TaskItem?)null);
-        var sut = new TaskService(repoMock.Object, validatorMock.Object);
+        var sut = new TaskService(repoMock.Object, validatorMock.Object, updateValidatorMock.Object);
         await Assert.ThrowsAsync<NotFoundException>(() =>
             sut.UpdateTaskAsync(Guid.NewGuid(), Guid.NewGuid(), new UpdateTaskRequest { Title = "New", Status = DomainTaskStatus.Pending }, default));
     }
@@ -166,6 +186,18 @@ public class TaskServiceTests
             .ReturnsAsync(new ValidationResult());
         validatorMock
             .Setup(v => v.ValidateAsync(It.IsAny<CreateTaskRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        return validatorMock;
+    }
+
+    private static Mock<IValidator<UpdateTaskRequest>> UpdateValidValidator()
+    {
+        var validatorMock = new Mock<IValidator<UpdateTaskRequest>>();
+        validatorMock
+            .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        validatorMock
+            .Setup(v => v.ValidateAsync(It.IsAny<UpdateTaskRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
         return validatorMock;
     }

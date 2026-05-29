@@ -146,6 +146,44 @@ export function TasksPage() {
         </div>
       </div>
 
+      {/* Pagination */}
+      {meta.totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              className="btn-secondary"
+              onClick={() => setPage(meta.page - 1)}
+              disabled={!meta.hasPreviousPage || loading}
+            >
+              ← Previous
+            </button>
+            <span className="text-sm text-slate-600">
+              Page {meta.page} of {meta.totalPages}
+            </span>
+            <button
+              className="btn-secondary"
+              onClick={() => setPage(meta.page + 1)}
+              disabled={!meta.hasNextPage || loading}
+            >
+              Next →
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-600">Show</label>
+            <select
+              value={filters.pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       {/* Error */}
       {error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

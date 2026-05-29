@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:5257";
 
@@ -24,7 +25,8 @@ api.interceptors.response.use(
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       localStorage.removeItem("token");
       if (window.location.pathname !== "/login") {
-        window.location.assign("/login");
+        const navigate = useNavigate();
+        navigate("/tasks");
       }
     }
     return Promise.reject(error);

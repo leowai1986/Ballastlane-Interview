@@ -49,7 +49,7 @@ Requested raw ADO.NET SQLite implementation with strict security constraints:
 - `SqliteConnection`, `SqliteCommand`, `SqliteParameter` ONLY
 - `DatabaseInitializer` with `init.sql` for auto-migration and seeding
 - JWT token generator and BCrypt password hasher
-- Controllers: `TasksController` ([Authorize]), `AuthController` ([AllowAnonymous]), `HealthController` ([AllowAnonymous])
+- Controllers: `TasksController` ([Authorize]), `AuthController` ([AllowAnonymous])
 - Proper DI registration in `Program.cs`
 
 ### AI Output

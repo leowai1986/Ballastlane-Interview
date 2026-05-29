@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { RegisterRequest } from "../types";
 import { api } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 type FieldErrors = Partial<Record<keyof RegisterRequest, string>>;
 
@@ -42,7 +43,8 @@ export function RegisterForm() {
     try {
       const { data } = await api.post("/api/auth/register", form);
       login(data);
-      window.location.assign("/tasks");
+      const navigate = useNavigate();
+      navigate("/tasks");
     } catch {
       setApiError("No se pudo registrar. ¿Email ya existe?");
     } finally {

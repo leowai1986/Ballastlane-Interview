@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { LoginRequest } from "../types";
 import { api } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 type FieldErrors = Partial<Record<keyof LoginRequest, string>>;
 
@@ -36,7 +37,8 @@ export function LoginForm() {
     try {
       const { data } = await api.post("/api/auth/login", form);
       login(data);
-      window.location.assign("/tasks");
+      const navigate = useNavigate();
+      navigate("/tasks");
     } catch {
       setApiError("Credenciales inválidas.");
     } finally {

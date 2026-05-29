@@ -32,7 +32,6 @@ export function Navbar() {
           </Link>
           <nav className="hidden items-center gap-2 md:flex">
             <NavItem to="/tasks" label="Tasks" />
-            <NavItem to="/health" label="Health" />
           </nav>
         </div>
 
@@ -70,7 +69,6 @@ export function Navbar() {
           <div className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-2">
               <NavItem to="/tasks" label="Tasks" />
-              <NavItem to="/health" label="Health" />
               {!isAuthenticated ? (
                 <>
                   <NavItem to="/login" label="Login" />

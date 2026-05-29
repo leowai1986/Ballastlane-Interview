@@ -88,7 +88,6 @@ Pre-filled on the login screen for convenience.
 | -------- | -------------------- | ------------- | ------------------------- |
 | `POST`   | `/api/auth/register` | No            | Create new user           |
 | `POST`   | `/api/auth/login`    | No            | Login, returns JWT        |
-| `GET`    | `/api/health`        | No            | Health check (public)     |
 | `GET`    | `/api/tasks`         | Yes           | List current user's tasks |
 | `GET`    | `/api/tasks/{id}`    | Yes           | Get specific task         |
 | `POST`   | `/api/tasks`         | Yes           | Create new task           |
@@ -117,6 +116,7 @@ Unit tests written for Domain, Application, Infrastructure, and API layers.
 ## Seeded Data
 
 On first run, the database is initialized with:
+
 - 2 Demo User: demo@ballastlane.com and demo2@ballastlane.com
 - 120 Demo Tasks: Pending, InProgress, Completed | demo 1 and demo 2
 
@@ -146,4 +146,5 @@ Ballastlane-Interview/
 ```
 
 ## License
+
 This project was built for interview evaluation purposes.

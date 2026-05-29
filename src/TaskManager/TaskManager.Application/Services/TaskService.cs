@@ -11,18 +11,26 @@ public class TaskService : ITaskService
 {
     private readonly ITaskRepository _taskRepository;
     private readonly IValidator<CreateTaskRequest> _createTaskValidator;
+    private readonly IValidator<UpdateTaskRequest> _updateTaskValidator;
 
-    public TaskService(ITaskRepository taskRepository, IValidator<CreateTaskRequest> createTaskValidator)
+    public TaskService(ITaskRepository taskRepository, IValidator<CreateTaskRequest> createTaskValidator, IValidator<UpdateTaskRequest> updateTaskValidator)
     {
         _taskRepository = taskRepository;
         _createTaskValidator = createTaskValidator;
+        _updateTaskValidator = updateTaskValidator;
     }
 
-    public async Task<PagedResult<TaskItem>> GetUserTasksAsync(Guid userId, TaskFilterRequest filter, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<TaskDto>> GetUserTasksAsync(Guid userId, TaskFilterRequest filter, CancellationToken cancellationToken = default)
     {
-        var tasks = await _taskRepository.GetByUserIdPaginatedAsync(userId, filter, cancellationToken);
+        var pagedResult = await _taskRepository.GetByUserIdPaginatedAsync(userId, filter, cancellationToken);
 
-        return tasks;
+        return new PagedResult<TaskDto>
+        {
+            Items = [.. pagedResult.Items.Select(i => MapToDto(i))],
+            Page = pagedResult.Page,
+            PageSize = pagedResult.PageSize,
+            TotalCount = pagedResult.TotalCount
+        };
     }
 
     public async Task<TaskDto?> GetTaskAsync(Guid userId, Guid taskId, CancellationToken cancellationToken = default)
@@ -54,6 +62,7 @@ public class TaskService : ITaskService
 
     public async Task<bool> UpdateTaskAsync(Guid id, Guid userId, UpdateTaskRequest request, CancellationToken cancellationToken = default)
     {
+        await _updateTaskValidator.ValidateAndThrowAsync(request, cancellationToken);
         var existing = await _taskRepository.GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException($"Task '{id}' was not found.");
         if (existing.UserId != userId)
         {

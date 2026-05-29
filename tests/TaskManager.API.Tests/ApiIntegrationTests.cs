@@ -56,14 +56,6 @@ public class ApiIntegrationTests : IClassFixture<TaskManagerApiFactory>
     }
 
     [Fact]
-    public async Task HealthGet_Returns200WithoutAuth()
-    {
-        var response = await _client.GetAsync("/api/health");
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-    }
-
-    [Fact]
     public async Task ValidationFailures_Return400BadRequest()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/register", new
