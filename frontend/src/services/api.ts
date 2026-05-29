@@ -26,7 +26,7 @@ api.interceptors.response.use(
       localStorage.removeItem("token");
       if (window.location.pathname !== "/login") {
         const navigate = useNavigate();
-        navigate("/tasks");
+        navigate("/login");
       }
     }
     return Promise.reject(error);
