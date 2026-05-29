@@ -27,7 +27,6 @@ export function TasksPage() {
   const [editing, setEditing] = useState<TaskDto | null>(null);
   const [searchInput, setSearchInput] = useState(filters.searchTerm ?? "");
 
-  // Debounce simple para búsqueda
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
     setSearchTerm(value);
