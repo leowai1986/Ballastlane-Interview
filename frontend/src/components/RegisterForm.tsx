@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 type FieldErrors = Partial<Record<keyof RegisterRequest, string>>;
 
 export function RegisterForm() {
-  const { login } = useAuth();
+  const navigate = useNavigate();
+  const { login } = useAuth(); 
 
   const [form, setForm] = useState<RegisterRequest>({
     name: "",
@@ -43,7 +44,6 @@ export function RegisterForm() {
     try {
       const { data } = await api.post("/api/auth/register", form);
       login(data);
-      const navigate = useNavigate();
       navigate("/tasks");
     } catch {
       setApiError("No se pudo registrar. ¿Email ya existe?");
